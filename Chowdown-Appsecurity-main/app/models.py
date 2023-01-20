@@ -18,6 +18,9 @@ class Restadmin(db.Model):
     rmobile = db.Column(db.Integer,unique=True, nullable=False)
     raddress = db.Column(db.String(250), nullable=False)
     rpassword = db.Column(db.String, nullable=False)
+    rcryptoaddress = db.Column(db.String, nullable=True)
+    rtoken = db.Column(db.String,nullable=True)
+    rnetwork = db.Column(db.String,nullable=True)
 
 
 class Diginadmin(db.Model):

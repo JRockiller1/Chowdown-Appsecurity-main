@@ -798,7 +798,7 @@ def create_checkout_session():
             rid=request.form['restid']
 
             restadmin  = Restadmin.query.filter(Restadmin.rid == rid).first()
-            if restadmin.rcryptoaddress == "" and restadmin.rtoken == "":
+            if restadmin.rcryptoaddress is None and restadmin.rtoken is None:
             # items = Items.query.filter(Items.rid == restid, Items.iname==restname).all()
                 rname=restadmin.rname
                 cmail=session['cmail']
@@ -825,13 +825,17 @@ def create_checkout_session():
                         "amount":total,
                         "currency":"SGD"
                     },
-                    "pricing_type":"fixed_price"
+                    "pricing_type":"fixed_price",
+                    "redirect_url": "http://127.0.0.1:5000/buyHistory"
                 }
                 checkout=client.charge.create(**charge)
                 return redirect(checkout.hosted_url)
-                # NEED TO DO WEBHOOKS BUT NEED HOST WEBSITE FIRST*****************************
+             
 
             else:
+                rid=request.form['restid']
+                # restadmin  = Restadmin.query.filter(Restadmin.rid == rid).first()
+                print(restadmin.rnetwork)
                 for i in items.split(','):
                     item2 = Items.query.filter(Items.iid == i).first()
                     name = item2.iname
@@ -842,8 +846,7 @@ def create_checkout_session():
                         total = item2.iprice * quantity
                     else:
                         total = item2.iprice
-                # return render_template('paymentmethod.html') pass the thing to html, hopefully can configure success link Copege
-
+                return render_template('paymentmethod_p2p.html',rid=rid,tprice=tprice,items=items, amount=total, restadmin=restadmin)
 
 
        

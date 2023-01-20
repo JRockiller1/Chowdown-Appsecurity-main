@@ -15,7 +15,7 @@
 
 
 </head>
-<body onload="myFunction(e)">
+<body>
     
 
 <div class="container">
@@ -57,12 +57,52 @@
 
 
 </form>
+
+<input type="number" id="amount" name="" value="{{amount}}" hidden="true"  />
+<input type="text" id="blockchain" name="" value="{{restadmin.rnetwork}}" hidden="true"  />
+<input type="text" id="token" name="" value="{{restadmin.rtoken}}" hidden="true"  />
+<input type="text" id="address" name="" value="{{restadmin.rcryptoaddress}}" hidden="true"  />
+
 </div>
+
+
 
 
   <script defer async src="https://integrate.depay.com/widgets/v9.js"></script>
 
 
+  
+  <script>
+    var amt = document.getElementById('amount').value
+    var network = document.getElementById('blockchain').value
+    console.log(network)
+    amt = parseFloat(amt)
+    console.log(typeof amt)
+    var token = document.getElementById('token').value
+    var add = document.getElementById('address').value
+    console.log(add)
+
+    window.onload = function(e){
+     DePayWidgets.Payment({
+        accept: [{
+            blockchain: network,
+            token: token,
+            receiver: add
+  }],
+        amount: {
+            currency: 'SGD',
+            fix: 0.1
+  }
+})
+
+      succeeded: (transaction)=> {
+        // called when payment transaction has been confirmed once by the network
+    }
+ 
+      
+    }
+
+  </script>
   
     
 </body>
