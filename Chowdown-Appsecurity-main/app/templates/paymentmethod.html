@@ -1,0 +1,109 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Payment type</title>
+    <!-- <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script> -->
+    <link rel="stylesheet" href="../static/paymentmethod.css">
+    
+    <!-- <script>
+    </script> -->
+
+
+
+</head>
+<body>
+    
+
+<div class="container">
+	
+	<h2>Choose your preferred payment method</h2>
+	
+  <ul>
+    <form action="/create-checkout-session", method="POST">
+  <li>
+    <input type="radio" id="f-option" name="selector" value="stripe">
+    <label for="f-option">Credit/Debit Card [FIAT payment]</label>
+    
+    <div class="check"></div>
+  </li>
+  
+  <li>
+    <input type="radio" id="s-option" name="selector" value="coinbase">
+    <label for="s-option">CryptoCurrency</label>
+    
+    <div class="check"><div class="inside"></div></div>
+  </li>
+  
+ 
+</ul>
+<button>
+    <svg style="width:24px;height:24px" viewBox="0 0 24 24" id="cart">
+      <path fill="#000000" d="M17,18A2,2 0 0,1 19,20A2,2 0 0,1 17,22C15.89,22 15,21.1 15,20C15,18.89 15.89,18 17,18M1,2H4.27L5.21,4H20A1,1 0 0,1 21,5C21,5.17 20.95,5.34 20.88,5.5L17.3,11.97C16.96,12.58 16.3,13 15.55,13H8.1L7.2,14.63L7.17,14.75A0.25,0.25 0 0,0 7.42,15H19V17H7C5.89,17 5,16.1 5,15C5,14.65 5.09,14.32 5.24,14.04L6.6,11.59L3,4H1V2M7,18A2,2 0 0,1 9,20A2,2 0 0,1 7,22C5.89,22 5,21.1 5,20C5,18.89 5.89,18 7,18M16,11L18.78,6H6.14L8.5,11H16Z" />
+  </svg>
+    <span>Checkout</span>
+    <svg id="check" style="width:24px;height:24px" viewBox="0 0 24 24">
+      <path stroke-width="2" fill="none" stroke="#ffffff" d="M 3,12 l 6,6 l 12, -12"/>
+    </svg>
+  </button>
+  <input type="text" id="total" name="total" src="" rows="1" cols="" value="0" hidden="true" readonly style="border: none;background-color: transparent; outline: none; " />
+
+  <input type="text" id="items" name="items" value='{{items}}' hidden="true" />
+
+  <input type="text" id="restid" name="restid" value="{{rid}}" hidden="true"  />
+
+
+</form>
+</div>
+
+
+<!-- <div>
+    <a class="buy-with-crypto"
+      href="https://commerce.coinbase.com/checkout/dee90f94-b0c1-4fc7-8f26-57ea86083cac">
+      Buy with Crypto
+    </a>
+    <script src="https://commerce.coinbase.com/v1/checkout.js?version=201807">
+    </script>
+  </div> -->
+
+  <button id="pay">PAY</button>
+
+  <script defer async src="https://integrate.depay.com/widgets/v9.js"></script>
+
+
+  
+  <script>
+  var button = document.getElementById("pay");
+    button.addEventListener("click",function(e){
+      DePayWidgets.Payment({
+        accept: [{
+          blockchain: 'ethereum',
+          amount: 0.0001,
+          token: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+          receiver: '0x317D875cA3B9f8d14f960486C0d1D1913be74e90'
+        }],
+      succeeded: (transaction)=> {
+        // called when payment transaction has been confirmed once by the network
+    }
+      })
+      
+    });
+  </script>
+  
+    
+</body>
+
+<script>
+    const btn = document.querySelector('button');
+    btn.addEventListener('click', () => {
+      document.documentElement.classList.toggle('checked-out');
+    });
+</script>
+
+
+
+
+</html>
