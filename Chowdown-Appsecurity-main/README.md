@@ -1,5 +1,5 @@
-# Chowdown-Appsecurity
-App Security Project IT2555-04
+# Chowdown-Infosecurity
+Info Security Project IT2555-04
 
 Team members:\
 Gabriel Lee\
@@ -13,7 +13,7 @@ To install all requirements:\
 
 
 [WEBSITE deployed on Ubuntu vps running on NGINX](https://www.chowdown1.store)\
-www.chowdown1.store (Website no longer in service)
+www.chowdown1.store 
 
 Insufficent Logging & Monitoring (Gabriel Lee) uses open source tools to monitor the linux server used for deployment of the website. Open source tools used:\
 https://github.com/netdata/netdata \
