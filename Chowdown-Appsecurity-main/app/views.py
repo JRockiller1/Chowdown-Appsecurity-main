@@ -728,16 +728,20 @@ def create_checkout_session():
     
     elif request.method == "POST":
         method = request.form['selector']
+        rid=request.form['restid']
+
+        currentDate = datetime.datetime.now()
+        cmail=session['cmail']
+        customer  = Customer.query.filter(Customer.cmail == cmail).first()
+        restadmin  = Restadmin.query.filter(Restadmin.rid == rid).first()
+            # items = Items.query.filter(Items.rid == restid, Items.iname==restname).all()
+        rname=restadmin.rname
         if method == 'stripe':
             tprice=request.form['total']
             items=request.form["items"]
-            rid=request.form['restid']
-
-            restadmin  = Restadmin.query.filter(Restadmin.rid == rid).first()
-            # items = Items.query.filter(Items.rid == restid, Items.iname==restname).all()
-            rname=restadmin.rname
-            cmail=session['cmail']
-            customer  = Customer.query.filter(Customer.cmail == cmail).first()
+            
+    
+            
 
             line_items = []
             quantity = 0
@@ -779,12 +783,11 @@ def create_checkout_session():
                 cancel_url= 'http://127.0.0.1:5000/user-landing',
 
                 )
-            currentDate = datetime.datetime.now()
+          
             #change to show how month work for graph
             month = currentDate.month
-            paymentType = "DELETE THIS ATTRIBuTEstr"
             cid = customer.cid
-            orders = Orders(cid=customer.cid, rid=rid, items=items,tprice=tprice,payment=paymentType,month1=month,rname=rname)
+            orders = Orders(cid=customer.cid, rid=rid, items=items,tprice=tprice,payment='Card',month1=month,rname=rname)
             
             if orders :
                 db.session.add(orders)
@@ -798,7 +801,7 @@ def create_checkout_session():
             rid=request.form['restid']
 
             restadmin  = Restadmin.query.filter(Restadmin.rid == rid).first()
-            if restadmin.rcryptoaddress is None and restadmin.rtoken is None:
+            if restadmin.rcryptoaddress == "Null" and restadmin.rtoken =="Null":
             # items = Items.query.filter(Items.rid == restid, Items.iname==restname).all()
                 rname=restadmin.rname
                 cmail=session['cmail']
@@ -829,13 +832,21 @@ def create_checkout_session():
                     "redirect_url": "http://127.0.0.1:5000/buyHistory"
                 }
                 checkout=client.charge.create(**charge)
+                month = currentDate.month
+                cid = customer.cid
+                orders = Orders(cid=customer.cid, rid=rid, items=items,tprice=tprice,payment='Coinbase',month1=month,rname=rname)
+                if orders :
+                    db.session.add(orders)
+                    db.session.commit()
                 return redirect(checkout.hosted_url)
              
 
             else:
                 rid=request.form['restid']
+                tprice=request.form['total']
+                items=request.form["items"]
                 # restadmin  = Restadmin.query.filter(Restadmin.rid == rid).first()
-                print(restadmin.rnetwork)
+              
                 for i in items.split(','):
                     item2 = Items.query.filter(Items.iid == i).first()
                     name = item2.iname
@@ -846,6 +857,12 @@ def create_checkout_session():
                         total = item2.iprice * quantity
                     else:
                         total = item2.iprice
+                    month = currentDate.month
+                    cid = customer.cid
+                    orders = Orders(cid=customer.cid, rid=rid, items=items,tprice=tprice,payment='P2P',month1=month,rname=rname)
+                    if orders :
+                        db.session.add(orders)
+                        db.session.commit()
                 return render_template('paymentmethod_p2p.html',rid=rid,tprice=tprice,items=items, amount=total, restadmin=restadmin)
 
 
@@ -1649,6 +1666,9 @@ def buyHistory():
     
     return render_template("buyhistory.html", cusname=customer.cname, myorder=myorders, totalprice=round(totalprice,2))
 
+@app.route('/testface')
+def testface():
+    return render_template("verifyface.html")
 
 
 
