@@ -67,6 +67,7 @@ class Promotion(db.Model):
     rid = db.Column(db.Integer, db.ForeignKey('restadmin.rid'), nullable=False)
     promocode = db.Column(db.String(250))
     discount = db.Column(db.Integer, nullable =False)
+    expiry=db.Column(db.Date,nullable=True)
 
 class charity_vote(db.Model):
     charityid = db.Column(db.Integer, primary_key=True,autoincrement=True)

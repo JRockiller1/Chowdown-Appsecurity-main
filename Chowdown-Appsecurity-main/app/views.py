@@ -18,9 +18,8 @@ from app.forms import CreateUserForm
 from app.forms import recaptcha
 import pyotp
 from coinbase_commerce.client import Client
-import http.client
-import json
-
+import schedule
+import time
 API_KEY = "f384519a-ee1d-4164-96da-7bffb07f4aa0"
 client = Client(api_key=API_KEY)
 
@@ -146,14 +145,25 @@ mail = Mail(app)
 def dependency():
     return render_template("checker.html")
 
+
+
+
 @app.route('/index')
 @app.route("/")
 def landingPage():
-
-
-    # FILE_LOG SHLD GO TO LOGS2 (no werkzeug, for important info, errors/signups/transactions)
+    # def delete_expiredpromo():
+    #     expired_promocodes = Promotion.query.filter(Promotion.expiry < datetime.datetime.now()).all()
+    #     for promocode in expired_promocodes:
+    #         db.session.delete(promocode)
+    #     db.session.commit()
+    # schedule.every().day.at("00:00").do(self.delete_expiredpromo)
+    # while True:
+    #     schedule.run_pending()
+    #     time.sleep(1)
+   
+      # FILE_LOG SHLD GO TO LOGS2 (no werkzeug, for important info, errors/signups/transactions)
     # app.logger(root) SHOULD GO LOGS1 (every other log werkzeug, assets etc, general info)
-    return render_template('landingPage.html', restadmin=Restadmin.query.all())
+        return render_template('landingPage.html', restadmin=Restadmin.query.all())
 
 @app.errorhandler(404)
 def error_404(e):
@@ -694,21 +704,30 @@ def createpromonext():
         promocode = request.form['promocode']
         discount = request.form['discount']
         duration = request.form['duration']
+    print(duration)
+    print(type(duration))
+    year, month, day = map(int,duration.split('-'))
+    duration = datetime.date(year,month,day)
+    print(duration)
+    print(type(duration))
     # create coupon, assign promocode to coupon
-    coupon = stripe.Coupon.create(
-        percent_off=discount,
-        duration="repeating",
-        duration_in_months = duration,
-        )
-    stripe.PromotionCode.create(
-        code=promocode,
-        coupon=coupon
-    )
+    # coupon = stripe.Coupon.create(
+    #     percent_off=discount,
+    #     duration="repeating",
+    #     duration_in_months = duration,
+    #     )
+    # stripe.PromotionCode.create(
+    #     code=promocode,
+    #     coupon=coupon
+    # )
+    now = datetime.date.today()
+    
 
+    # expiry = 
     rmail=session['rmail']
     restad  = Restadmin.query.filter(Restadmin.rmail == rmail).first()
     restid=restad.rid
-    promotion = Promotion(rid=restid, promocode=promocode, discount=discount)
+    promotion = Promotion(rid=restid, promocode=promocode, discount=discount,expiry=duration)
     db.session.add(promotion)
     db.session.commit()
 
@@ -951,7 +970,7 @@ def payment():
         print(items)
         return render_template('cart.html' ,x=x,tprice=tprice, rname=rname ,items=items, rid=rid,promo=promo,tier=tier,discount=discount,subtotal=subtotal)
 
-@app.route("/discountedcart")
+@app.route("/discountedcart",methods = ['GET','POST'])
 def discountedcart():
     if not session.get('cmail'):
         return redirect(request.url_root)
@@ -1028,7 +1047,6 @@ def discountedcart():
     #     tprice = t float(tprice)*(float(discount1/100))
 
     # tprice = round((dprice - totalprice),2)
-    print("ACTUAL TOTAL PRICE BOZO TO BE SOTRED IN DATABASE")
     print(dprice)
     try:
         c=","
@@ -1052,8 +1070,9 @@ def paymentmethod():
         rid = request.form['restid']
         tprice = request.form['tprice']
         items = request.form['items']
-
-    return render_template('paymentmethod.html',rid=rid,tprice=tprice,items=items)
+  
+        return render_template('paymentmethod.html',rid=rid,tprice=tprice,items=items)
+   
 
 
 # @app.route('/updaterestpass',methods = ['GET','POST'])

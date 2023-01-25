@@ -61,14 +61,14 @@
                 <div class="col text-right">$ {{subtotal}}</div>
                
             </div>
-            <form action="/discountedcart">
+            <form action="/discountedcart", method="POST">
                 <p>SHIPPING</p> <select>
                     <option class="text-muted">Standard-Delivery-FREE</option>
                 </select>
                 <input type="text" hidden="true" value="{{rid}}" name="restid">
                 <input type="text" class="form-control" id="tprice" name="tprice"value="{{tprice}}" hidden="true">
                 <input type="text"  name="items" value="{{items}}"  hidden="true" />
-                <p>GIVE CODE</p> <input id="code" name="promocode" placeholder="Enter your code">
+                <p>GIVE CODE (IF USING CREDIT/DEBIT/E-WALLET) KEY IN LATER AT CHECKOUT</p> <input id="code" name="promocode" placeholder="Enter your code">
                 <button type="submit" value="Submit">Submit</button>
                 <input type="text" name="subtotal" id="" hidden="true" value="{{subtotal}}">
 

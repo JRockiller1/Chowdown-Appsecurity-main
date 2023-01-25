@@ -72,8 +72,9 @@
                 <div class="col">TOTAL PRICE</div>
                 <div class="col text-right">${{dprice}}</div>
             </div> 
-            <form action="/payment" method="POST">
+            <form action="/paymentmethod" method="POST">
               <input type="text" hidden="true" value="{{rid}}" name="restid">
+              <input type="text" hidden="true" value="{{promo.discount}}" name="discountpercent">
               <input type="text" class="form-control" id="tprice" name="tprice"value="{{dprice}}" hidden="true">
               <input type="text"  name="items" value="{{items}}"  hidden="true" />
               <button type="submit" class="btn">Proceed to Checkout</button>
