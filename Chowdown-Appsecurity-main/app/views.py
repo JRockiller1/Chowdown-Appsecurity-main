@@ -350,14 +350,15 @@ def editrestprofileNext():
     rnetwork = request.form['rnetwork']
     rtoken = request.form['rtoken']
     rid = request.form['rid']
+
     restadmin =Restadmin.query.filter(Restadmin.rid==rid).first()
     restadmin.rmail = remail_address
     restadmin.rname = ruser_name
     restadmin.rmobile = rmobile
     restadmin.raddress = raddress
-    restadmin.rcryptoaddress = rcryptoaddress
     restadmin.rnetwork = rnetwork
     restadmin.rtoken = rtoken
+    restadmin.rcryptoaddress = rcryptoaddress
     db.session.commit()
     return render_template('vendorProfile.html', cmsg="Passsword Updated Succcessfully...!", restinfo = restadmin)
 
@@ -820,8 +821,34 @@ def create_checkout_session():
             rid=request.form['restid']
 
             restadmin  = Restadmin.query.filter(Restadmin.rid == rid).first()
-            if restadmin.rcryptoaddress == "Null" and restadmin.rtoken =="Null":
-            # items = Items.query.filter(Items.rid == restid, Items.iname==restname).all()
+            if restadmin.rcryptoaddress and restadmin.rtoken:
+                rid=request.form['restid']
+                tprice=request.form['total']
+                items=request.form["items"]
+                # restadmin  = Restadmin.query.filter(Restadmin.rid == rid).first()
+                print('======' + str(tprice))
+                for i in items.split(','):
+                    item2 = Items.query.filter(Items.iid == i).first()
+                    name = item2.iname
+                    desc = item2.idesc
+                    quantity = items.split(',').count(i)
+                    if quantity > 1:
+                        
+                        total = item2.iprice * quantity
+                    else:
+                        total = item2.iprice
+                    month = currentDate.month
+                    cid = customer.cid
+                    orders = Orders(cid=customer.cid, rid=rid, items=items,tprice=tprice,payment='P2P',month1=month,rname=rname)
+                    if orders :
+                        db.session.add(orders)
+                        db.session.commit()
+                return render_template('paymentmethod_p2p.html',rid=rid,tprice=tprice,items=items, amount=total, restadmin=restadmin)
+            
+             
+
+            else:
+                # items = Items.query.filter(Items.rid == restid, Items.iname==restname).all()
                 rname=restadmin.rname
                 cmail=session['cmail']
                 customer  = Customer.query.filter(Customer.cmail == cmail).first()
@@ -844,7 +871,7 @@ def create_checkout_session():
                     "name": name,
                     "description": desc,
                     "local_price": {
-                        "amount":total,
+                        "amount":tprice,
                         "currency":"SGD"
                     },
                     "pricing_type":"fixed_price",
@@ -858,31 +885,6 @@ def create_checkout_session():
                     db.session.add(orders)
                     db.session.commit()
                 return redirect(checkout.hosted_url)
-             
-
-            else:
-                rid=request.form['restid']
-                tprice=request.form['total']
-                items=request.form["items"]
-                # restadmin  = Restadmin.query.filter(Restadmin.rid == rid).first()
-              
-                for i in items.split(','):
-                    item2 = Items.query.filter(Items.iid == i).first()
-                    name = item2.iname
-                    desc = item2.idesc
-                    quantity = items.split(',').count(i)
-                    if quantity > 1:
-                        
-                        total = item2.iprice * quantity
-                    else:
-                        total = item2.iprice
-                    month = currentDate.month
-                    cid = customer.cid
-                    orders = Orders(cid=customer.cid, rid=rid, items=items,tprice=tprice,payment='P2P',month1=month,rname=rname)
-                    if orders :
-                        db.session.add(orders)
-                        db.session.commit()
-                return render_template('paymentmethod_p2p.html',rid=rid,tprice=tprice,items=items, amount=total, restadmin=restadmin)
 
 
        
