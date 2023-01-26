@@ -9,7 +9,6 @@ import datetime
 import secrets
 from flask_mail import Mail,Message
 import os
-from os import path
 import bcrypt
 import stripe
 import imgbbpy
@@ -20,8 +19,92 @@ import pyotp
 from coinbase_commerce.client import Client
 import schedule
 import time
+from PIL import Image
+from flask import Flask, request
+from netaddr import IPNetwork, IPSet
+import requests
+from flask_limiter.util import get_remote_address
+from flask_limiter import Limiter
+
+import numpy as np
+import pandas as pd
+from sklearn import metrics 
+import warnings
+import pickle
+warnings.filterwarnings('ignore')
+from app.AIfeatures import FeatureExtraction
+limiter = Limiter(get_remote_address,app=app)
+
+# extract the IP addresses from the response
+dbl_response = requests.get("https://www.spamhaus.org/drop/drop.txt")
+edbl_response = requests.get("https://www.spamhaus.org/drop/edrop.txt")
+dblv6_response = requests.get("https://www.spamhaus.org/drop/dropv6.txt")
+asndpl_response = requests.get("https://www.spamhaus.org/drop/asndrop.txt")
+ip_list = []
+for line in dbl_response.text.split("\n"):
+    if line.startswith(";") or not line.strip():
+        continue
+    ip_list.append(line)
+for line in edbl_response.text.split("\n"):
+    if line.startswith(";") or not line.strip():
+        continue
+    ip_list.append(line)
+for line in dblv6_response.text.split("\n"):
+    if line.startswith(";") or not line.strip():
+        continue
+    ip_list.append(line)
+for line in asndpl_response.text.split("\n"):
+    if line.startswith(";") or not line.strip():
+        continue
+    ip_list.append(line)
+ip_network_list = [IPNetwork(ip.split(" ; ")[0]) for ip in ip_list]
+blacklist = IPSet(ip_network_list)
 API_KEY = "f384519a-ee1d-4164-96da-7bffb07f4aa0"
 client = Client(api_key=API_KEY)
+
+file = open("pickle\model.pkl","rb")
+gbc = pickle.load(file)
+file.close()
+
+@app.route("/PhishingAI", methods=["GET", "POST"])
+def PhishingAI():
+    if request.method == "POST":
+
+        url = request.form["url"]
+        obj = FeatureExtraction(url)
+        x = np.array(obj.getFeaturesList()).reshape(1,30) 
+
+        y_pred =gbc.predict(x)[0]
+        #1 is safe       
+        #-1 is unsafe
+        y_pro_phishing = gbc.predict_proba(x)[0,0]
+        y_pro_non_phishing = gbc.predict_proba(x)[0,1]
+        # if(y_pred ==1 ):
+        pred = "It is {0:.2f} % safe to go ".format(y_pro_phishing*100)
+        return render_template('smart.html',xx =round(y_pro_non_phishing,2),url=url )
+    return render_template("smart.html", xx =-1)
+
+
+@app.route('/')
+def index():
+    # get the IP address of the incoming request
+    ip = request.remote_addr
+    # ip = '2.56.192.0/22'
+    if IPNetwork(ip) in blacklist:
+        # block the request
+        return "Request blocked from blacklisted IP address", 403
+
+    else:
+        # allow the request
+        return redirect('/home')
+@app.route("/home")
+def landingPage():
+
+
+    # FILE_LOG SHLD GO TO LOGS2 (no werkzeug, for important info, errors/signups/transactions)
+    # app.logger(root) SHOULD GO LOGS1 (every other log werkzeug, assets etc, general info)
+    return render_template('landingPage.html', restadmin=Restadmin.query.all())
+
 
 @app.route('/lll', methods=['POST'])
 def api_home():
@@ -104,6 +187,7 @@ def login_2fa_form():
 
 # use this for config file for dashbaord monitoring
 @app.before_request
+@limiter.limit('100 per minute')
 def make_session_permanent():
     session.permanent = True
     app.permanent_session_lifetime = timedelta(minutes=10)
@@ -125,7 +209,7 @@ UPLOAD_FOLDER = '/Users/Gabriel Lee/Downloads/Chowdown-Appsecurity-main/Chowdown
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
  
-ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif','jfif'])
  
 
 def allowed_file(filename):
@@ -226,6 +310,7 @@ def restregisterbyadmin():
             # return render_template('vendorProfile.html', ssmsg="Restaurant Registered Succcessfully...!")
 
 @app.route('/restLogin')
+@limiter.limit('3 per minute')
 def restLogin():
     form=recaptcha()
 
@@ -551,8 +636,17 @@ def additemNext():
  
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
        
+        # Opening the image file
+        image = Image.open(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+        # Removing metadata
+        data = dict(image.info)
+        data.pop("exif", None)
+        # Saving the image with the same name
+        file_name, file_ext = os.path.splitext(file.filename)
+        image.save(os.path.join(app.config['UPLOAD_FOLDER'], f"{file_name}{file_ext}"), **data)
+
         client = imgbbpy.SyncClient('d92793a1e6a23ddf9b758139fce4a106')
-        image = client.upload(file='/Users/Gabriel Lee/Downloads/Chowdown-Appsecurity-main/Chowdown-Appsecurity-main/app/static/images/product_image/' + file.filename)
+        image = client.upload(file='/Users/perci/PycharmProjects/pythonpercival/Chowdown-Appsecurity-main/app/static/images/product_image/' + f"{file_name}{file_ext}")
 
         # create item in stripe
         product = stripe.Product.create(
@@ -1298,6 +1392,7 @@ def newsletterlogged():
 
 
 @app.route('/login', methods=["POST","GET"])
+@limiter.limit('3 per minute')
 def login():
     form=recaptcha()
     return render_template('login.html',form=form)
